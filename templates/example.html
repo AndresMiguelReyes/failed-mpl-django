@@ -1,0 +1,54 @@
+{% load staticfiles %}
+<html>
+  <head>
+    <!-- TODO: There should be a way to include all of the required javascript
+               and CSS so matplotlib can add to the set in the future if it
+               needs to. -->
+    <script type="text/javascript" src='https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.min.js'></script>
+
+    <link rel="stylesheet" href="{% static 'css/page.css' %}">
+    <link rel="stylesheet" href="{% static 'css/boilerplate.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fbm.css' %}">
+    <link rel="stylesheet" href="{% static 'jquery-ui-1.12.1/jquery-ui.min.css' %}">
+
+    <script src="{% static 'jquery-ui-1.12.1/external/jquery/jquery.js' %}"></script>
+    <script src="{% static 'jquery-ui-1.12.1/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'js/mpl.js' %}"></script>
+
+    <script>
+      /* This is a callback that is called when the user saves
+         (downloads) a file.  Its purpose is really to map from a
+         figure and file format to a url in the application. */
+      function ondownload(figure, format) {
+        window.open('download.' + format, '_blank');
+      };
+
+      var loc = window.location
+      var wsStart = 'ws://'
+      if (loc.protocol == 'https:'){
+          wsStart = 'wss://'
+      }
+      var fig_id = {{ mpl_fig_id }}
+      var webSocketEndpoint =  wsStart + loc.host + loc.pathname + fig_id + "/"
+      console.log(webSocketEndpoint)
+
+      $(document).ready(
+          function() {
+            socket = new ReconnectingWebSocket(webSocketEndpoint)
+
+            // mpl.figure creates a new figure on the webpage.
+            fig = new mpl.figure({{ mpl_fig_id }}, socket, ondownload, $('div#figure'));
+          }
+        );
+
+    </script>
+
+    <title>matplotlib</title>
+  </head>
+
+  <body>
+    <h1> MATPLOTLIB WEB AGG WITH DJANGO CHANNELS </h1>
+    <div id="figure">
+    </div>
+  </body>
+</html>
